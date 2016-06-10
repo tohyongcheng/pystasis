@@ -29,7 +29,7 @@ def organize_messages(messages):
         location = msg['location']
         formatted_messages[msg['message']].append(location)
 
-    return formatted_messages
+    return dict(formatted_messages)
 
 @app.route("/")
 def view_messages():

@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block body %}
+	{% for msg, issues in messages.iteritems() %}
+		<h2>{{ msg }}</h2>
+		{% for location in issues %}
+			<p>{{ location['path'] }}</p>
+		{% endfor %}
+	{% endfor %}
+{% endblock %}
