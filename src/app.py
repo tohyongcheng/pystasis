@@ -27,9 +27,25 @@ def organize_messages(messages):
     formatted_messages = defaultdict(lambda: list())
     for msg in messages:
         location = msg['location']
+        line = location['line']
+        location['starting_line_no'] = max(0, line-3)
+        location['ending_line_no'] = line+3
+        location['html'] = internal_open_file(location['path'], location['starting_line_no'], location['ending_line_no'])
         formatted_messages[msg['message']].append(location)
-
     return dict(formatted_messages)
+
+def internal_open_file(filepath, starting_line_no, ending_line_no):
+    starting_line_no = starting_line_no - 1
+    ending_line_no = ending_line_no - 1
+    text = ""
+    fp = open(filepath, 'rb')
+    for i, line in enumerate(fp):
+        if i >= starting_line_no and i <= ending_line_no:
+            text += line
+        if i > ending_line_no:
+            break
+    fp.close()
+    return text
 
 @app.route("/")
 def view_messages():

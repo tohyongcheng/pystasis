@@ -4,7 +4,7 @@
 <nav class="navbar navbar-default" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Pystasis</a>
+      <a class="navbar-brand" href="#">pystasis</a>
     </div>
   </div>
 </nav>
@@ -24,7 +24,11 @@
                 <code>{{ location['path'] }}</code>
               </a>
               
-              <p class="list-group-item-text">...</p>
+              <div class="list-group-item-text">
+                <pre class="line-numbers" data-line={{location['line']}} data-start={{location['starting_line_no']}}>
+                  <code class="language-python">{{location['html']}}</code>
+                </pre>
+              </div>
             </li>
           {% endfor %}  
         </ul>
