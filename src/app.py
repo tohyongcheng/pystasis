@@ -36,6 +36,24 @@ def view_messages():
     messages = organize_messages(prospect_this_directory())
     return render_template('messages.html', messages=messages)
 
+@app.route("/open_file")
+def open_file():
+    filepath = request.args.get('filepath')
+    starting_line_no = int(request.args.get('starting_line_no')) - 1
+    ending_line_no = int(request.args.get('ending_line_no')) - 1
+    text = ""
+    fp = open(filepath, 'rb')
+    for i, line in enumerate(fp):
+        if i >= starting_line_no and i <= ending_line_no:
+            text += line
+        if i > ending_line_no:
+            break
+    fp.close()
+    return text
+
+
+
+
 def main():
     app.run(debug=True)
 

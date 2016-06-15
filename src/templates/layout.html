@@ -1,8 +1,12 @@
 <!doctype html>
 <title>pystasis</title>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-<div class="page">
-  <h1>pystasis</h1>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+{% block navbar %}
+{% endblock %}
+
+<div class="container">
   {% block body %}
   {% endblock %}
 </div>
