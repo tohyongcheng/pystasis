@@ -2,11 +2,21 @@
 <title>pystasis</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/prism.css') }}">
+<script   src="https://code.jquery.com/jquery-2.2.4.min.js"   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="   crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
 
-{% block navbar %}
-{% endblock %}
+<style>
+
+</style>
+
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">pystasis</a>
+    </div>
+  </div>
+</nav>
 
 <div class="container">
   {% block body %}

@@ -1,48 +1,78 @@
 {% extends "layout.html" %}
 
-{% block navbar %}
-<nav class="navbar navbar-default" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="#">pystasis</a>
-    </div>
-  </div>
-</nav>
-{% endblock %}
-
 {% block body %}
-	{% for msg, issues in messages.iteritems() %}
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">{{ msg }}</h3>
-      </div>
-      <div class="panel-body">
-        <ul class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
-          {% for location in issues %}
-            <li class="list-group-item">
-              <a class="list-group-item-heading" href="#">
-                <code>{{ location['path'] }}</code>
-              </a>
-              
-              <div class="list-group-item-text">
-                <pre class="line-numbers" data-line={{location['line']}} data-start={{location['starting_line_no']}}>
-                  <code class="language-python">{{location['html']}}</code>
-                </pre>
-              </div>
-            </li>
-          {% endfor %}  
+    <div class="row">
+	    <div class="col-xs-12">
+			<div class="pull-right">
+                {{ stats['issue_count'] }} issues
+			</div>
+			<hr>
+		</div>
+	</div>
+
+    {% for msg, issues in messages.iteritems() %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{{ msg }}</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
+                    {% for location in issues %}
+                        <li class="list-group-item">
+                            <a class="trigger-load-file list-group-item-heading" href="javascript:void(0)" data-toggle="collapse"
+                               data-target="#{{ location['id'] }}" data-file-path="{{ location['path'] }}"
+                               data-id="{{ location['id'] }}" data-line="{{ location['line'] }}">
+                                {{ location['path'] }}
+                            </a>
+                            <div id="{{ location['id'] }}" class="code-block list-group-item-text collapse">
+
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+            <div class="panel-footer">
+                {{ issues|length }} issues
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="text-center">
+        <ul class="pagination">
+          {% for idx in range(stats['page_count']) %}
+              <li {% if idx == stats['page_no'] %} class="active"{% endif %} >
+                  <a class="" href="/?page={{ idx + 1 }}">{{ idx + 1 }}</a>
+              </li>
+          {% endfor %}
         </ul>
-        
-      </div>
-      <div class="panel-footer">
-          {{ issues|length }} issues
-      </div>
     </div>
-  		
-	{% endfor %}
+
+
+    <script>
+        $(".trigger-load-file").click(function () {
+            var filePath = $(this).data("file-path");
+            var id = $(this).data("id");
+            var lineNo = $(this).data("line");
+            var codeBlock = $(".code-block#"+id);
+
+            if (codeBlock.children().length == 0) {
+                $.getJSON("/open_file", {file_path: filePath, line: lineNo}, function (data) {
+                    codeBlock.append(
+                        "<pre class='line-numbers'" +
+                        "data-line='" + (parseInt(lineNo) - data.start) + "'" +
+                        "data-start='"+ data.start + "'" +
+                        ">" + "<code class='language-python'>" + data.snippet +
+                        "</code>" +
+                        "</pre>"
+                    );
+
+                    Prism.highlightAll();
+                });
+
+            }
+
+        });
+    </script>
 {% endblock %}
 
-<script>
-
-
-</script>
