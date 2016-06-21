@@ -50,6 +50,15 @@
 
 
     <script>
+
+        $(document).ready(function() {
+            var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+
+            socket.on('refresh', function() {
+                alert("hey!")
+            })
+        });
+
         $(".trigger-load-file").click(function () {
             var filePath = $(this).data("file-path");
             var id = $(this).data("id");
@@ -60,7 +69,7 @@
                 $.getJSON("/open_file", {file_path: filePath, line: lineNo}, function (data) {
                     codeBlock.append(
                         "<pre class='line-numbers'" +
-                        "data-line='" + (parseInt(lineNo) - data.start) + "'" +
+                        "data-line='" + (parseInt(lineNo) - data.start + 1) + "'" +
                         "data-start='"+ data.start + "'" +
                         ">" + "<code class='language-python'>" + data.snippet +
                         "</code>" +
