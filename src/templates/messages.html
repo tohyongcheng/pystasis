@@ -2,13 +2,13 @@
 
 {% block body %}
     <div class="row">
-	    <div class="col-xs-12">
-			<div class="pull-right">
+        <div class="col-xs-12">
+            <div class="pull-right">
                 {{ stats['issue_count'] }} issues
-			</div>
-			<hr>
-		</div>
-	</div>
+            </div>
+            <hr>
+        </div>
+    </div>
 
     {% for msg, issues in messages.iteritems() %}
         <div class="panel panel-default">
@@ -19,7 +19,8 @@
                 <ul class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
                     {% for location in issues %}
                         <li class="list-group-item">
-                            <a class="trigger-load-file list-group-item-heading" href="javascript:void(0)" data-toggle="collapse"
+                            <a class="trigger-load-file list-group-item-heading" href="javascript:void(0)"
+                               data-toggle="collapse"
                                data-target="#{{ location['id'] }}" data-file-path="{{ location['path'] }}"
                                data-id="{{ location['id'] }}" data-line="{{ location['line'] }}">
                                 {{ location['path'] }}
@@ -40,47 +41,44 @@
 
     <div class="text-center">
         <ul class="pagination">
-          {% for idx in range(stats['page_count']) %}
-              <li {% if idx == stats['page_no'] %} class="active"{% endif %} >
-                  <a class="" href="/?page={{ idx + 1 }}">{{ idx + 1 }}</a>
-              </li>
-          {% endfor %}
+            {% for idx in range(stats['page_count']) %}
+                <li {% if idx == stats['page_no'] %} class="active"{% endif %} >
+                    <a class="" href="/?page={{ idx + 1 }}">{{ idx + 1 }}</a>
+                </li>
+            {% endfor %}
         </ul>
     </div>
 
 
     <script>
 
-        $(document).ready(function() {
-            var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+        $(document).ready(function () {
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+            socket.on('message', function (msg) {
+                if (msg == 'refersh') location.reload();
+            });
 
-            socket.on('refresh', function() {
-                alert("hey!")
-            })
-        });
+            $(".trigger-load-file").click(function () {
+                var filePath = $(this).data("file-path");
+                var id = $(this).data("id");
+                var lineNo = $(this).data("line");
+                var codeBlock = $(".code-block#" + id);
 
-        $(".trigger-load-file").click(function () {
-            var filePath = $(this).data("file-path");
-            var id = $(this).data("id");
-            var lineNo = $(this).data("line");
-            var codeBlock = $(".code-block#"+id);
+                if (codeBlock.children().length == 0) {
+                    $.getJSON("/open_file", {file_path: filePath, line: lineNo}, function (data) {
+                        codeBlock.append(
+                                "<pre class='line-numbers'" +
+                                "data-line='" + (parseInt(lineNo) - data.start + 1) + "'" +
+                                "data-start='" + data.start + "'" +
+                                ">" + "<code class='language-python'>" + data.snippet +
+                                "</code>" +
+                                "</pre>"
+                        );
 
-            if (codeBlock.children().length == 0) {
-                $.getJSON("/open_file", {file_path: filePath, line: lineNo}, function (data) {
-                    codeBlock.append(
-                        "<pre class='line-numbers'" +
-                        "data-line='" + (parseInt(lineNo) - data.start + 1) + "'" +
-                        "data-start='"+ data.start + "'" +
-                        ">" + "<code class='language-python'>" + data.snippet +
-                        "</code>" +
-                        "</pre>"
-                    );
-
-                    Prism.highlightAll();
-                });
-
-            }
-
+                        Prism.highlightAll();
+                    });
+                }
+            });
         });
     </script>
 {% endblock %}

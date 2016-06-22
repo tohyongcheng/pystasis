@@ -12,12 +12,13 @@ import json
 import logging
 import threading
 import copy
+import webbrowser
 
 VERSION = '1.0.0'
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='gevent')
 prospector_messages = None
 
 __doc__ = """View your static code analysis in realtime."""
@@ -29,6 +30,7 @@ def prospect(paths):
     prospector = Prospector(config)
     prospector.execute()
     all_messages = [m.as_dict() for m in prospector.messages]
+
     global prospector_messages
     prospector_messages = all_messages
 
@@ -41,16 +43,15 @@ def refresh_prospect_with_recently_changed_files(paths):
     config.explicit_file_mode = all(map(os.path.isfile, config.paths))
     prospector = Prospector(config)
     prospector.execute()
+
     global prospector_messages
     new_messages = [m.as_dict() for m in prospector.messages]
     messages_kept = [msg for msg in prospector_messages if not any([msg['location']['path'] in path for path in paths])]
     prospector_messages = new_messages + messages_kept
-    
-    # TODO: Need to fix RuntimeError
-    emit('refresh', {}, '/test')
 
+    socketio.emit('message', "refresh")
     return prospector_messages
-    
+
 
 def organize_messages(messages, page_no=0, per_page=10):
     def _organize_message(_messages):
@@ -116,7 +117,7 @@ def open_file():
     return json.dumps(res)
 
 
-@socketio.on('connect', namespace='/test')
+@socketio.on('connect')
 def test_connect():
     print("Client connected")
 
@@ -130,7 +131,6 @@ def get_changed_file_paths(working_dir):
         file_paths.add(diff.a_path)
         file_paths.add(diff.b_path)
     list_of_file_paths = list(file_paths)
-    print list_of_file_paths
     return list_of_file_paths
 
 
@@ -139,9 +139,8 @@ class WatchDogFileSystemsHandler(PatternMatchingEventHandler):
         PatternMatchingEventHandler.__init__(self, patterns=["*.py"])
 
     def on_modified(self, event):
-        print event
         if event.src_path.endswith('.py'):
-            print "Refreshing %s" % event.src_path
+            print("Refreshing %s" % event.src_path)
             refresh_prospect_with_recently_changed_files([event.src_path])
 
 
@@ -175,23 +174,18 @@ class FlaskThread(threading.Thread):
     def run(self):
         run_flask(self.paths)
 
+
 def run_flask(paths):
     prospect(paths)
     socketio.run(app)
+    webbrowser.open("localhost:5000")
 
 
 def main():
     paths = sys.argv[1] if len(sys.argv) > 1 else '.'
-    
-    # flask_thread = FlaskThread(paths)
-    # flask_thread.daemon = True
-    # flask_thread.start()
-
-    print "Starting WatchDogThread"
     watchdog_thread = WatchDogThread(paths)
     watchdog_thread.daemon = True
     watchdog_thread.start()
-
     run_flask(paths)
 
 
