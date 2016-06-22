@@ -61,8 +61,6 @@ def organize_messages(messages, page_no=0, per_page=10):
             line = location['line']
             location['starting_line_no'] = max(0, line - 7)
             location['ending_line_no'] = line + 7
-            location['html'] = internal_open_file(location['path'], location['starting_line_no'],
-                                                  location['ending_line_no'])
             location['id'] = hash(msg['message'] + location['path'] + str(location['line']))
             formatted[msg['message']].append(location)
         return dict(formatted)
@@ -77,20 +75,6 @@ def organize_messages(messages, page_no=0, per_page=10):
     return page_messages, page_count, issue_count
 
 
-def internal_open_file(file_path, starting_line_no, ending_line_no):
-    _starting_line_no = starting_line_no - 1
-    _ending_line_no = ending_line_no - 1
-    text = ""
-    fp = open(file_path, 'rb')
-    for i, line in enumerate(fp):
-        if _starting_line_no <= i <= _ending_line_no:
-            text += line
-        if i > ending_line_no:
-            break
-    fp.close()
-    return text
-
-
 @app.route("/")
 def view_messages():
     page_no = int(request.args.get('page', 1)) - 1
@@ -103,7 +87,7 @@ def view_messages():
 def open_file():
     file_path = request.args.get('file_path')
     line_no = int(request.args.get('line')) - 1
-    starting_line_no = line_no - 7
+    starting_line_no = max(0, line_no - 7)
     ending_line_no = line_no + 7
     res = {'snippet': "", 'start': starting_line_no + 1, 'end': ending_line_no + 1}
     fp = open(file_path, 'rb')
